@@ -54,6 +54,8 @@ class Window(PygletWindow):
             double_buffer=True,
         )
 
+        pyglet.app.platform_event_loop.start()
+
         super().__init__(
             width=self.default_size[0],
             height=self.default_size[1],
@@ -292,3 +294,4 @@ class Window(PygletWindow):
         if hasattr(self, "ctx"):
             self.ctx.release()
         self.close()
+        pyglet.app.platform_event_loop.stop()
