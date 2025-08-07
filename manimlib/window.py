@@ -262,14 +262,12 @@ class Window(PygletWindow):
 
     @note_undrawn_event
     def on_show(self) -> None:
-        super().on_show()
         if not self.scene:
             return
         self.scene.on_show()
 
     @note_undrawn_event
     def on_hide(self) -> None:
-        super().on_hide()
         if not self.scene:
             return
         self.scene.on_hide()
