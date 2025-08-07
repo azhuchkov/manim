@@ -91,6 +91,7 @@ class Window(PygletWindow):
 
     def init_mgl_context(self) -> None:
         self.ctx = moderngl.create_context()
+        self.ctx.viewport = (0, 0, self.width, self.height)
 
     # Helper properties for width/height and position
     @property
@@ -186,6 +187,11 @@ class Window(PygletWindow):
         self.flip()
         self._has_undrawn_event = False
 
+    def _dispatch_super(self, name: str, *args, **kwargs) -> None:
+        handler = getattr(super(), name, None)
+        if handler:
+            handler(*args, **kwargs)
+
     @staticmethod
     def note_undrawn_event(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
@@ -196,7 +202,7 @@ class Window(PygletWindow):
 
     @note_undrawn_event
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> None:
-        super().on_mouse_motion(x, y, dx, dy)
+        self._dispatch_super('on_mouse_motion', x, y, dx, dy)
         if not self.scene:
             return
         point = self.pixel_coords_to_space_coords(x, y)
@@ -205,7 +211,7 @@ class Window(PygletWindow):
 
     @note_undrawn_event
     def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int) -> None:
-        super().on_mouse_drag(x, y, dx, dy, buttons, modifiers)
+        self._dispatch_super('on_mouse_drag', x, y, dx, dy, buttons, modifiers)
         if not self.scene:
             return
         point = self.pixel_coords_to_space_coords(x, y)
@@ -214,7 +220,7 @@ class Window(PygletWindow):
 
     @note_undrawn_event
     def on_mouse_press(self, x: int, y: int, button: int, mods: int) -> None:
-        super().on_mouse_press(x, y, button, mods)
+        self._dispatch_super('on_mouse_press', x, y, button, mods)
         if not self.scene:
             return
         point = self.pixel_coords_to_space_coords(x, y)
@@ -222,7 +228,7 @@ class Window(PygletWindow):
 
     @note_undrawn_event
     def on_mouse_release(self, x: int, y: int, button: int, mods: int) -> None:
-        super().on_mouse_release(x, y, button, mods)
+        self._dispatch_super('on_mouse_release', x, y, button, mods)
         if not self.scene:
             return
         point = self.pixel_coords_to_space_coords(x, y)
@@ -230,7 +236,7 @@ class Window(PygletWindow):
 
     @note_undrawn_event
     def on_mouse_scroll(self, x: int, y: int, x_offset: float, y_offset: float) -> None:
-        super().on_mouse_scroll(x, y, x_offset, y_offset)
+        self._dispatch_super('on_mouse_scroll', x, y, x_offset, y_offset)
         if not self.scene:
             return
         point = self.pixel_coords_to_space_coords(x, y)
@@ -240,7 +246,7 @@ class Window(PygletWindow):
     @note_undrawn_event
     def on_key_press(self, symbol: int, modifiers: int) -> None:
         self.pressed_keys.add(symbol)  # Modifiers?
-        super().on_key_press(symbol, modifiers)
+        self._dispatch_super('on_key_press', symbol, modifiers)
         if not self.scene:
             return
         self.scene.on_key_press(symbol, modifiers)
@@ -248,33 +254,37 @@ class Window(PygletWindow):
     @note_undrawn_event
     def on_key_release(self, symbol: int, modifiers: int) -> None:
         self.pressed_keys.difference_update({symbol})  # Modifiers?
-        super().on_key_release(symbol, modifiers)
+        self._dispatch_super('on_key_release', symbol, modifiers)
         if not self.scene:
             return
         self.scene.on_key_release(symbol, modifiers)
 
     @note_undrawn_event
     def on_resize(self, width: int, height: int) -> None:
-        super().on_resize(width, height)
+        self._dispatch_super('on_resize', width, height)
+        if hasattr(self, 'ctx'):
+            self.ctx.viewport = (0, 0, width, height)
         if not self.scene:
             return
         self.scene.on_resize(width, height)
 
     @note_undrawn_event
     def on_show(self) -> None:
+        self._dispatch_super('on_show')
         if not self.scene:
             return
         self.scene.on_show()
 
     @note_undrawn_event
     def on_hide(self) -> None:
+        self._dispatch_super('on_hide')
         if not self.scene:
             return
         self.scene.on_hide()
 
     @note_undrawn_event
     def on_close(self) -> None:
-        super().on_close()
+        self._dispatch_super('on_close')
         self._is_closing = True
         if not self.scene:
             return
