@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import numpy as np
-
-import moderngl_window as mglw
-from moderngl_window.context.pyglet.window import Window as PygletWindow
-from moderngl_window.timers.clock import Timer
 from functools import wraps
+
+import moderngl
+import numpy as np
+import pyglet
 import screeninfo
+
+from pyglet.window import Window as PygletWindow
 
 from manimlib.constants import ASPECT_RATIO
 from manimlib.constants import FRAME_SHAPE
@@ -35,15 +36,33 @@ class Window(PygletWindow):
         full_screen: bool = False,
         size: Optional[tuple[int, int]] = None,
         position: Optional[tuple[int, int]] = None,
-        samples: int = 0
+        samples: int = 0,
     ):
         self.scene = scene
         self.monitor = self.get_monitor(monitor_index)
         self.default_size = size or self.get_default_size(full_screen)
         self.default_position = position or self.position_from_string(position_string)
         self.pressed_keys = set()
+        self._has_undrawn_event = True
 
-        super().__init__(samples=samples)
+        config = pyglet.gl.Config(
+            sample_buffers=1 if samples > 0 else 0,
+            samples=samples,
+            major_version=self.gl_version[0],
+            minor_version=self.gl_version[1],
+            double_buffer=True,
+        )
+
+        super().__init__(
+            width=self.default_size[0],
+            height=self.default_size[1],
+            resizable=self.resizable,
+            vsync=self.vsync,
+            fullscreen=full_screen,
+            config=config,
+        )
+
+        self.set_mouse_visible(self.cursor)
         self.to_default_position()
 
         if self.scene:
@@ -60,17 +79,32 @@ class Window(PygletWindow):
         self._has_undrawn_event = True
 
         self.scene = scene
-        self.title = str(scene)
+        self.set_caption(str(scene))
 
         self.init_mgl_context()
 
-        self.timer = Timer()
-        self.config = mglw.WindowConfig(ctx=self.ctx, wnd=self, timer=self.timer)
-        mglw.activate_context(window=self, ctx=self.ctx)
-        self.timer.start()
-
         # This line seems to resync the viewport
         self.on_resize(*self.size)
+
+    def init_mgl_context(self) -> None:
+        self.ctx = moderngl.create_context()
+
+    # Helper properties for width/height and position
+    @property
+    def size(self) -> tuple[int, int]:
+        return (self.width, self.height)
+
+    @size.setter
+    def size(self, size: tuple[int, int]) -> None:
+        self.set_size(*size)
+
+    @property
+    def position(self) -> tuple[int, int]:
+        return self.get_location()
+
+    @position.setter
+    def position(self, pos: tuple[int, int]) -> None:
+        self.set_location(*pos)
 
     def get_monitor(self, index):
         try:
@@ -105,8 +139,8 @@ class Window(PygletWindow):
         flicker on the window but at least reliably focuses it. It may also
         offset the window position slightly.
         """
-        self._window.set_visible(False)
-        self._window.set_visible(True)
+        self.set_visible(False)
+        self.set_visible(True)
 
     def to_default_position(self):
         self.position = self.default_position
@@ -139,8 +173,14 @@ class Window(PygletWindow):
     def has_undrawn_event(self) -> bool:
         return self._has_undrawn_event
 
-    def swap_buffers(self):
-        super().swap_buffers()
+    def clear(self, r: float = 0.0, g: float = 0.0, b: float = 0.0, a: float = 1.0) -> None:
+        if hasattr(self, "ctx"):
+            self.ctx.clear(r, g, b, a)
+        else:
+            super().clear()
+
+    def swap_buffers(self) -> None:
+        self.flip()
         self._has_undrawn_event = False
 
     @staticmethod
