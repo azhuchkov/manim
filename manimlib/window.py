@@ -52,6 +52,8 @@ class Window(PygletWindow):
             major_version=self.gl_version[0],
             minor_version=self.gl_version[1],
             double_buffer=True,
+            depth_size=24,
+            stencil_size=8,
         )
 
         pyglet.app.platform_event_loop.start()
@@ -179,7 +181,7 @@ class Window(PygletWindow):
 
     def clear(self, r: float = 0.0, g: float = 0.0, b: float = 0.0, a: float = 1.0) -> None:
         if hasattr(self, "ctx"):
-            self.ctx.clear(r, g, b, a)
+            self.ctx.clear(r, g, b, a, depth=1.0)
         else:
             super().clear()
 
