@@ -44,7 +44,6 @@ class Window(PygletWindow):
         self.default_position = position or self.position_from_string(position_string)
         self.pressed_keys = set()
         self._has_undrawn_event = True
-        self._is_closing = False
 
         config = pyglet.gl.Config(
             sample_buffers=1 if samples > 0 else 0,
@@ -273,7 +272,6 @@ class Window(PygletWindow):
     @note_undrawn_event
     def on_close(self) -> None:
         super().on_close()
-        self._is_closing = True
         if not self.scene:
             return
         self.scene.on_close()
@@ -284,7 +282,7 @@ class Window(PygletWindow):
     # Methods for compatibility with previous window wrapper
     @property
     def is_closing(self) -> bool:
-        return self._is_closing
+        return self.has_exit
 
     def destroy(self) -> None:
         if hasattr(self, "ctx"):
