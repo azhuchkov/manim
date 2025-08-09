@@ -76,6 +76,7 @@ class Scene(object):
         preview_while_skipping: bool = True,
         presenter_mode: bool = False,
         default_wait_time: float = 1.0,
+        fixed_aspect_ratio: bool = False,
     ):
         self.skip_animations = skip_animations
         self.always_update_mobjects = always_update_mobjects
@@ -86,6 +87,7 @@ class Scene(object):
         self.preview_while_skipping = preview_while_skipping
         self.presenter_mode = presenter_mode
         self.default_wait_time = default_wait_time
+        self.fixed_aspect_ratio = fixed_aspect_ratio
 
         self.camera_config = merge_dicts_recursively(
             manim_config.camera,         # Global default
@@ -858,7 +860,8 @@ class Scene(object):
             self.hold_on_wait = False
 
     def on_resize(self, width: int, height: int) -> None:
-        pass
+        if self.fixed_aspect_ratio:
+            self.camera.resize_frame_shape(fixed_dimension=True)
 
     def on_show(self) -> None:
         pass
