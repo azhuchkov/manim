@@ -112,6 +112,9 @@ class Scene(object):
             samples=self.samples,
             **self.camera_config
         )
+        if self.fixed_aspect_ratio:
+            # Ensure the initial frame respects the desired aspect ratio
+            self.camera.resize_frame_shape(fixed_dimension=True)
         self.frame: CameraFrame = self.camera.frame
         self.frame.reorient(*self.default_frame_orientation)
         self.frame.make_orientation_default()
@@ -860,7 +863,7 @@ class Scene(object):
             self.hold_on_wait = False
 
     def on_resize(self, width: int, height: int) -> None:
-        if self.fixed_aspect_ratio:
+        if self.fixed_aspect_ratio and hasattr(self, "camera"):
             self.camera.resize_frame_shape(fixed_dimension=True)
 
     def on_show(self) -> None:
