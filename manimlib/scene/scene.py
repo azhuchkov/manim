@@ -863,22 +863,17 @@ class Scene(object):
             self.hold_on_wait = False
 
     def on_resize(self, width: int, height: int) -> None:
-        if not hasattr(self, "camera"):
-            return
-
         if self.fixed_aspect_ratio:
             aspect = self.camera.frame.get_aspect_ratio()
             window_aspect = width / height
             if window_aspect > aspect:
                 vp_height = height
-                vp_width = int(aspect * vp_height)
-                vp_x = (width - vp_width) // 2
-                vp_y = 0
+                vp_width = int(vp_height * aspect)
             else:
                 vp_width = width
                 vp_height = int(vp_width / aspect)
-                vp_x = 0
-                vp_y = (height - vp_height) // 2
+            vp_x = (width - vp_width) // 2
+            vp_y = (height - vp_height) // 2
             if self.window:
                 self.window.ctx.viewport = (vp_x, vp_y, vp_width, vp_height)
         else:
