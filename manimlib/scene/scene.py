@@ -197,8 +197,18 @@ class Scene(object):
             "Press `command + q` or `esc` to quit"
         )
         self.skip_animations = False
+
+        frame_dt = 1 / self.camera.fps
         while not self.is_window_closing():
-            self.update_frame(1 / self.camera.fps)
+            if (
+                self.should_update_mobjects()
+                or self.window.has_undrawn_event()
+            ):
+                # Only render a frame when there is something to update
+                self.update_frame(frame_dt)
+            else:
+                self.update_frame(0)
+                time.sleep(frame_dt)
 
     def embed(
         self,
