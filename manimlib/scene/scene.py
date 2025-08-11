@@ -863,6 +863,9 @@ class Scene(object):
             self.hold_on_wait = False
 
     def on_resize(self, width: int, height: int) -> None:
+        if not hasattr(self, 'camera'):
+            return
+
         if self.fixed_aspect_ratio:
             aspect = self.camera.frame.get_aspect_ratio()
             window_aspect = width / height
@@ -876,8 +879,6 @@ class Scene(object):
             vp_y = (height - vp_height) // 2
             if self.window:
                 self.window.ctx.viewport = (vp_x, vp_y, vp_width, vp_height)
-        else:
-            self.camera.resize_frame_shape()
 
     def on_show(self) -> None:
         pass

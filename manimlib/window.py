@@ -90,9 +90,8 @@ class Window(PygletWindow):
 
         self.init_mgl_context()
 
-        if hasattr(scene, "camera"):
-            # Resync the viewport when the camera exists
-            self.on_resize(*self.size)
+        # This line seems to resync the viewport
+        self.on_resize(*self.size)
 
     def init_mgl_context(self) -> None:
         self.ctx = moderngl.create_context()
